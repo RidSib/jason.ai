@@ -114,7 +114,7 @@ async def tool_call_user(request: Request):
 
     # make post request using requests module 
     response = requests.post(
-        f"https://87ea-89-247-226-29.ngrok-free.app/outbound-call/{target_user_id}",
+        f"https://702e-89-247-226-29.ngrok-free.app/outbound-call/{target_user_id}",
         json={"first_message": f"Yo, it's Jason! It's nice talking to you again. How are you doing '{{name}}'. {current_user_name} of you told me to call you to ask if you are interested in joining '{activity_name}'. '{activity_description}'. Are you interested in joining?"}
     )
     return response.json()
