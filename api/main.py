@@ -12,11 +12,16 @@ from starlette.websockets import WebSocketDisconnect
 import pandas as pd
 # Change this import to use psycopg2-binary
 import psycopg2.extras
+import requests
+
+
+
 
 load_dotenv()
 
 ELEVEN_LABS_AGENT_ID = os.getenv("ELEVENLABS_AGENT_ID")
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+ELEVEN_LABS_INTERMEDIARY_SERVER_URL = os.getenv("ELEVEN_LABS_INTERMEDIARY_SERVER_URL")
 
 app = FastAPI()
 
@@ -93,6 +98,32 @@ def connect_to_db():
     except Exception as e:
         print(f"Database connection error: {str(e)}")
         raise
+
+
+@app.post('/tools/call_user')
+async def tool_call_user(request: Request):
+    # extract phone_number from request body 
+    data = await request.json()
+    current_user_name = data.get('current_user_name')
+    target_user_id = data.get('target_user_id')
+    activity_name = data.get('activity_name')
+    activity_description = data.get('activity_description')
+    """
+    Use this tool to call a user based on their user_id. The user_id can be found in your context window that was injected into the conversation.
+    """
+
+    # make post request using requests module 
+    response = requests.post(
+        f"{ELEVEN_LABS_INTERMEDIARY_SERVER_URL}/outbound-call/{target_user_id}",
+        json={"first_message": f"Yo, it's Jason! It's nice talking to you again. How are you doing '{{name}}'. {current_user_name} of you told me to call you to ask if you are interested in joining '{activity_name}'. '{activity_description}'. Are you interested in joining?"}
+    )
+    return response.json()
+
+    # curl -X POST https://829c-89-247-226-29.ngrok-free.app/outbound-call \
+    # -H "Content-Type: application/json" \
+# -d '{"first_message": "Yo, it'\''s Jason! It's nice talking to you again. How are you doing {{name}}. Berlin never sleeps, and neither do the events happening around town. But first things first—what'\''s your name? Gotta know who I'\''m talking to! If we haven'\''t met before, I'\''ll get you set up real quick. Then, we can dive into finding you the perfect event—cozy book club, art show, or maybe something wilder? Or do you want to start something yourself? Tell me what'\''s up—I'\''ll hook you up.", "number": "+491709004593"}'
+    
+
 
 @app.get('/tools/events')
 async def tool_events(request: Request):
