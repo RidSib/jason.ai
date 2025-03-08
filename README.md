@@ -24,10 +24,6 @@ Organize Events: Provide event details, and CallAgent will handle invitations an
 
 🚀 Installation
 
-# Clone the repository
-git clone https://github.com/your-repo/call-agent.git
-cd call-agent
-
 # Install dependencies
 pip install -r requirements.txt
 
