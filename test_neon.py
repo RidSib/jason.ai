@@ -58,6 +58,20 @@ def test_insert(conn, table_name, data):
         print(f"\n--- Successfully inserted into {table_name} ---")
         print(f"Inserted row: {inserted_row}")
         
+        # Verify the insertion by querying the table
+        verify_cursor = conn.cursor()
+        conditions = " AND ".join([f"{col} = %s" for col in data.keys()])
+        verify_query = f"SELECT COUNT(*) FROM {table_name} WHERE {conditions}"
+        verify_cursor.execute(verify_query, list(data.values()))
+        count = verify_cursor.fetchone()[0]
+        
+        if count > 0:
+            print(f"✅ Verification successful: Found {count} matching row(s) in {table_name}")
+        else:
+            print(f"❌ Verification failed: No matching rows found in {table_name}")
+        
+        verify_cursor.close()
+        
     except Exception as e:
         conn.rollback()
         print(f"Error inserting into {table_name}: {str(e)}")
@@ -99,6 +113,14 @@ def main():
         
         # Test SELECT on events table
         test_select(conn, "events")
+
+        test_select(conn, "bookings")
+
+        new_booking = {
+            "event_id": 1,
+            "person_id": 1
+        }
+        test_insert(conn, "bookings", new_booking)
         
         # Test INSERT into bookings table
         # Uncomment and modify this if you want to test insertion

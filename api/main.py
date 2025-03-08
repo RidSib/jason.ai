@@ -150,7 +150,7 @@ async def tool_bookings(request: Request):
         cursor = conn.cursor()
     
         # Look up user_id from users table based on user_name
-        cursor.execute("SELECT user_id FROM users WHERE name = %s", (user_name,))
+        cursor.execute("SELECT person_id FROM users WHERE name = %s", (user_name,))
         user_result = cursor.fetchone()
         
         if not user_result:
@@ -160,14 +160,14 @@ async def tool_bookings(request: Request):
         
         # Insert the new booking into the bookings table
         cursor.execute(
-            "INSERT INTO bookings (user_id, event_id) VALUES (%s, %s)",
+            "INSERT INTO bookings (person_id, event_id) VALUES (%s, %s)",
             (user_id, event_id)
         )
         
         # Commit the transaction
         conn.commit()
         
-        return {"success": True, "user_id": user_id, "event_id": event_id}
+        return {"success": True, "person_id": user_id, "event_id": event_id}
     
     except Exception as e:
         if conn:
