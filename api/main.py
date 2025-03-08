@@ -120,37 +120,36 @@ async def tool_bookings(request: Request):
         # Connect to the database
         conn = connect_to_db()
         cursor = conn.cursor()
+    
+        # Look up user_id from users table based on user_name
+        cursor.execute("SELECT user_id FROM users WHERE name = %s", (user_name,))
+        user_result = cursor.fetchone()
         
-        try:
-            # Look up user_id from users table based on user_name
-            cursor.execute("SELECT user_id FROM users WHERE name = %s", (user_name,))
-            user_result = cursor.fetchone()
-            
-            if not user_result:
-                return {"error": f"User with name '{user_name}' not found"}
-            
-            user_id = user_result[0]
-            
-            # Insert the new booking into the bookings table
-            cursor.execute(
-                "INSERT INTO bookings (user_id, event_id) VALUES (%s, %s)",
-                (user_id, event_id)
-            )
-            
-            # Commit the transaction
-            conn.commit()
-            
-            return {"success": True, "user_id": user_id, "event_id": event_id}
+        if not user_result:
+            return {"error": f"User with name '{user_name}' not found"}
         
-        except Exception as e:
-            conn.rollback()
-            traceback.print_exc()
-            return {"error": f"Database operation failed: {str(e)}"}
-            
-        finally:
-            # Always close cursor and connection
-            cursor.close()
-            conn.close()
+        user_id = user_result[0]
+        
+        # Insert the new booking into the bookings table
+        cursor.execute(
+            "INSERT INTO bookings (user_id, event_id) VALUES (%s, %s)",
+            (user_id, event_id)
+        )
+        
+        # Commit the transaction
+        conn.commit()
+        
+        return {"success": True, "user_id": user_id, "event_id": event_id}
+    
+    except Exception as e:
+        conn.rollback()
+        traceback.print_exc()
+        return {"error": f"Database operation failed: {str(e)}"}
+        
+    finally:
+        # Always close cursor and connection
+        cursor.close()
+        conn.close()
 
 if __name__ == "__main__":
     import uvicorn
