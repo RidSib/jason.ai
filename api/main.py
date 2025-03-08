@@ -110,11 +110,11 @@ async def tool_call_user(request: Request):
     activity_description = data.get('activity_description')
     """
     Use this tool to call a user based on their user_id. The user_id can be found in your context window that was injected into the conversation.
-    """
+    """ 
 
     # make post request using requests module 
     response = requests.post(
-        f"{ELEVEN_LABS_INTERMEDIARY_SERVER_URL}/outbound-call/{target_user_id}",
+        f"https://87ea-89-247-226-29.ngrok-free.app/outbound-call/{target_user_id}",
         json={"first_message": f"Yo, it's Jason! It's nice talking to you again. How are you doing '{{name}}'. {current_user_name} of you told me to call you to ask if you are interested in joining '{activity_name}'. '{activity_description}'. Are you interested in joining?"}
     )
     return response.json()
