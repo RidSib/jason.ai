@@ -150,11 +150,11 @@ async def tool_bookings(request: Request):
         cursor = conn.cursor()
     
         # Look up user_id from users table based on user_name
-        cursor.execute("SELECT person_id FROM users WHERE name = %s", (user_name,))
+        cursor.execute("SELECT person_id FROM users WHERE person_name = %s", (user_name,))
         user_result = cursor.fetchone()
         
         if not user_result:
-            return {"error": f"User with name '{user_name}' not found"}
+            return {"error": f"User with person_name '{user_name}' not found"}
         
         user_id = user_result[0]
         
