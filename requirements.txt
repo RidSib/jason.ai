@@ -6,3 +6,4 @@ elevenlabs
 starlette
 python-multipart
 pandas
+psycopg2

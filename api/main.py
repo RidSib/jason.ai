@@ -10,6 +10,7 @@ from elevenlabs.conversational_ai.conversation import Conversation
 from .twilio_audio_interface import TwilioAudioInterface
 from starlette.websockets import WebSocketDisconnect
 import pandas as pd
+import psycopg2
 
 load_dotenv()
 
@@ -78,15 +79,32 @@ async def handle_media_stream(websocket: WebSocket):
             print("Error ending conversation session:")
             traceback.print_exc()
 
+def connect_to_db():
+    """Connect to the Neon PostgreSQL database and return connection object"""
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        raise ValueError("DATABASE_URL environment variable is not set")
+    
+    print(f"Connecting to database...")
+    conn = psycopg2.connect(db_url)
+    print("Connection established successfully!")
+    return conn
+
 # Replace the WebSocket endpoint with a regular HTTP GET endpoint
 @app.get('/tools/events')
 async def tool_events():
     try:
-        with open("events.csv", "r") as file:
-            content = file.read()
-        return {"requirements": content}
-    except FileNotFoundError:
-        return {"error": "requirements.txt not found"}
+        conn = connect_to_db()
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT * FROM events")
+        content = cursor.fetchall()
+        print(f"\n--- First rows from events ---")       
+    except Exception as e:
+        print(f"Error querying")
+        return {"requirements":"Error querying"} 
+    finally:
+        cursor.close()
+        return {"requirements":content} 
 
 @app.post('/tools/bookings')
 async def tool_bookings(request: Request):
@@ -99,44 +117,40 @@ async def tool_bookings(request: Request):
         if not user_name or not event_id:
             return {"error": "Both user_name and event_id are required"}
         
-        # Look up user_id from users.csv based on user_name
-        if not os.path.exists("users.csv"):
-            return {"error": "Users database not found"}
+        # Connect to the database
+        conn = connect_to_db()
+        cursor = conn.cursor()
         
-        users_df = pd.read_csv("users.csv")
+        try:
+            # Look up user_id from users table based on user_name
+            cursor.execute("SELECT user_id FROM users WHERE name = %s", (user_name,))
+            user_result = cursor.fetchone()
+            
+            if not user_result:
+                return {"error": f"User with name '{user_name}' not found"}
+            
+            user_id = user_result[0]
+            
+            # Insert the new booking into the bookings table
+            cursor.execute(
+                "INSERT INTO bookings (user_id, event_id) VALUES (%s, %s)",
+                (user_id, event_id)
+            )
+            
+            # Commit the transaction
+            conn.commit()
+            
+            return {"success": True, "user_id": user_id, "event_id": event_id}
         
-        # Find the user by name
-        user_match = users_df[users_df['name'] == user_name]
-        if user_match.empty:
-            return {"error": f"User with name '{user_name}' not found"}
-        
-        user_id = user_match.iloc[0]['user_id']
-        
-        # Create the bookings file if it doesn't exist
-        if not os.path.exists("bookings.csv"):
-            df = pd.DataFrame(columns=["user_id", "event_id"])
-            df.to_csv("bookings.csv", index=False)
-        
-        # Read existing bookings
-        df = pd.read_csv("bookings.csv")
-        
-        # Create new booking entry
-        new_booking = {
-            "user_id": user_id,
-            "event_id": event_id
-        }
-        
-        # Append the new booking
-        df = pd.concat([df, pd.DataFrame([new_booking])], ignore_index=True)
-        
-        # Save the updated bookings
-        df.to_csv("bookings.csv", index=False)
-        
-        return {"success": True, "user_id": user_id, "event_id": event_id}
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return {"error": str(e)}
+        except Exception as e:
+            conn.rollback()
+            traceback.print_exc()
+            return {"error": f"Database operation failed: {str(e)}"}
+            
+        finally:
+            # Always close cursor and connection
+            cursor.close()
+            conn.close()
 
 if __name__ == "__main__":
     import uvicorn
