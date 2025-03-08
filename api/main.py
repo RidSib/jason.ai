@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 from twilio.twiml.voice_response import VoiceResponse, Connect
 from elevenlabs import ElevenLabs
 from elevenlabs.conversational_ai.conversation import Conversation
-from twilio_audio_interface import TwilioAudioInterface
+from .twilio_audio_interface import TwilioAudioInterface
 from starlette.websockets import WebSocketDisconnect
 
 load_dotenv()
