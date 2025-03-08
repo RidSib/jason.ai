@@ -10,7 +10,8 @@ from elevenlabs.conversational_ai.conversation import Conversation
 from .twilio_audio_interface import TwilioAudioInterface
 from starlette.websockets import WebSocketDisconnect
 import pandas as pd
-import psycopg2
+# Change this import to use psycopg2-binary
+import psycopg2.extras
 
 load_dotenv()
 
@@ -141,7 +142,7 @@ async def tool_bookings(request: Request):
         return {"error": f"Database operation failed: {str(e)}"}
         
     finally:
-        # Always close cursor and connection
+        # Always close cursor and connection - fixed the double close issue
         if cursor:
             try:
                 cursor.close()
@@ -152,8 +153,9 @@ async def tool_bookings(request: Request):
                 conn.close()
             except:
                 pass
-        cursor.close()
-        conn.close()
+        # Remove these lines to avoid double-closing
+        # cursor.close()
+        # conn.close()
 
 if __name__ == "__main__":
     import uvicorn
