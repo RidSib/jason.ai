@@ -94,6 +94,44 @@ def connect_to_db():
         print(f"Database connection error: {str(e)}")
         raise
 
+@app.get('/tools/events')
+async def tool_events(request: Request):
+    conn = None
+    cursor = None
+    try:
+        # Connect to the database
+        conn = connect_to_db()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        
+        # Query all events from the events table
+        cursor.execute("SELECT * FROM events")
+        events = cursor.fetchall()
+        
+        # Convert to list of dictionaries for JSON response
+        result = []
+        for event in events:
+            result.append(dict(event))
+        
+        return {"events": result}
+    
+    except Exception as e:
+        print(f"Error in tool_events: {str(e)}")
+        traceback.print_exc()
+        return {"error": f"Database operation failed: {str(e)}"}
+        
+    finally:
+        # Always close cursor and connection
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if conn:
+            try:
+                conn.close()
+            except:
+                pass
+
 @app.post('/tools/bookings')
 async def tool_bookings(request: Request):
     conn = None
