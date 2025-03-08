@@ -1,0 +1,11 @@
+Event Name,Date,Location,Activity Type,Max People,Current Sign-ups
+Secret Rooftop Sunset Party,"March 15, 2025",Kreuzberg (Exact location shared after RSVP),Party / Social Gathering,50,38
+Underground Techno Rave,"March 22, 2025","Abandoned Warehouse, Friedrichshain",Music / Dance,200,120
+Startup Networking & Pitch Night,"March 18, 2025","Factory Berlin, Mitte",Networking / Business,100,75
+Street Photography Walk & Workshop,"March 20, 2025",Meeting Point - Alexanderplatz,Photography / Outdoor,20,15
+Vegan Cooking Class & Dinner,"March 25, 2025",Prenzlauer Berg (Private Kitchen),Food / Workshop,12,10
+Indie Film Screening & Discussion,"March 28, 2025",Neukölln Art Space,Film / Discussion,30,22
+AI & Tech Trends Meetup,"March 27, 2025","Co-working Hub, Charlottenburg",Tech / Business,80,60
+Yoga & Mindfulness in the Park,"March 29, 2025",Tiergarten Park,Wellness / Outdoor,25,18
+Stand-up Comedy Night,"March 21, 2025","Comedy Club, Schöneberg",Comedy / Entertainment,70,50
+Beer Tasting & Brewery Tour,"March 23, 2025","Craft Brewery, Wedding",Food / Social,40,35
