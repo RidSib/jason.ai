@@ -19,11 +19,9 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
 app = FastAPI()
 
-
 @app.get("/")
 async def root():
     return {"message": "Twilio-ElevenLabs Integration Server"}
-
 
 @app.post("/twilio/inbound_call")
 async def handle_incoming_call(request: Request):
@@ -83,31 +81,22 @@ def connect_to_db():
     """Connect to the Neon PostgreSQL database and return connection object"""
     db_url = os.getenv("DATABASE_URL")
     if not db_url:
+        print("WARNING: DATABASE_URL environment variable is not set")
         raise ValueError("DATABASE_URL environment variable is not set")
     
-    print(f"Connecting to database...")
-    conn = psycopg2.connect(db_url)
-    print("Connection established successfully!")
-    return conn
-
-# Replace the WebSocket endpoint with a regular HTTP GET endpoint
-@app.get('/tools/events')
-async def tool_events():
     try:
-        conn = connect_to_db()
-        cursor = conn.cursor()
-        cursor.execute(f"SELECT * FROM events")
-        content = cursor.fetchall()
-        print(f"\n--- First rows from events ---")       
+        print(f"Connecting to database...")
+        conn = psycopg2.connect(db_url)
+        print("Connection established successfully!")
+        return conn
     except Exception as e:
-        print(f"Error querying")
-        return {"requirements":"Error querying"} 
-    finally:
-        cursor.close()
-        return {"requirements":content} 
+        print(f"Database connection error: {str(e)}")
+        raise
 
 @app.post('/tools/bookings')
 async def tool_bookings(request: Request):
+    conn = None
+    cursor = None
     try:
         # Get the booking data from the request
         data = await request.json()
@@ -142,12 +131,27 @@ async def tool_bookings(request: Request):
         return {"success": True, "user_id": user_id, "event_id": event_id}
     
     except Exception as e:
-        conn.rollback()
+        if conn:
+            try:
+                conn.rollback()
+            except:
+                pass
+        print(f"Error in tool_bookings: {str(e)}")
         traceback.print_exc()
         return {"error": f"Database operation failed: {str(e)}"}
         
     finally:
         # Always close cursor and connection
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if conn:
+            try:
+                conn.close()
+            except:
+                pass
         cursor.close()
         conn.close()
 
